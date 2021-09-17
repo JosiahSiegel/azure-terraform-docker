@@ -12,6 +12,11 @@
     terraform apply
     ```
 
+    If running pipeline on Windows, apply via below to properly set Docker host:
+    ```sh
+    terraform apply -var="is_windows=true"
+    ```
+
  2. Enable automatic provisioning by connecting repo to Azure DevOps and adding `azure-pipelines.yml` to pipeline:
 
     * Connect Key Vault secrets as **variable group within Azure Devops**
@@ -151,3 +156,4 @@
 ## Notes
 
  1. Log Analytics Workspace is created, but not yet connected.
+ 

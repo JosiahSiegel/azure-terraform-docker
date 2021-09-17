@@ -24,6 +24,7 @@ module "initial_resources" {
   source = "./modules/initial_resources"
   location = azurerm_resource_group.user.location
   rg_name  = azurerm_resource_group.user.name
+  is_windows = var.is_windows
 }
 
 # Final module

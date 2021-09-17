@@ -140,7 +140,7 @@ provider "docker" {
     username = azurerm_container_registry.user.admin_username
     password = azurerm_container_registry.user.admin_password
   }
-  host = "npipe:////.//pipe//docker_engine"
+  host = var.is_windows ? "npipe:////.//pipe//docker_engine" : "unix:///var/run/docker.sock"
 }
 
 # If docker change, wait with ACR to complete setup

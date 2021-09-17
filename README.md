@@ -1,5 +1,7 @@
 # Azure DevOps - Docker container via Terraform
 
+[![Build Status](https://dev.azure.com/josiah-siegel/DemoProject/_apis/build/status/JosiahSiegel.azure-terraform-docker?branchName=main)](https://dev.azure.com/josiah-siegel/DemoProject/_build/latest?definitionId=1&branchName=main)
+
 ![tf_prov.png](tf_prov.png)
 
 ## Quickstart (after pre-reqs are complete)

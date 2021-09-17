@@ -1,0 +1,71 @@
+trigger:
+  branches:
+    include:
+    - '*'
+  paths:
+    include:
+    - '*'
+
+variables:
+  # Load secrets from Key Vault
+  - group: admin-kv
+  - name: azureLocation
+    value: 'eastus2'
+  - name: terraformWorkingDirectory
+    value: '$(System.DefaultWorkingDirectory)'
+  - name: terraformVersion
+    value: '0.12.25'
+
+stages:
+  - stage: TerraformContinuousIntegration
+    displayName: Terraform Module - CI
+    jobs:
+    - job: TerraformContinuousIntegrationJob
+      displayName: TerraformContinuousIntegration - CI Job
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+      # Step 1: run the Checkov Static Code Analysis
+      - task: Bash@3
+        inputs:
+          filePath: '$(System.DefaultWorkingDirectory)/checkov.sh'
+        displayName: Checkov Static Code Analysis
+      # Step 1a: Publish Checkov Static Code Analysis
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '**/report.xml'
+          mergeTestResults: true
+      # Step 2: Terraform init
+      - bash: |
+          terraform init \
+            -backend-config="storage_account_name=$TF_STATE_BLOB_ACCOUNT_NAME" \
+            -backend-config="container_name=$TF_STATE_BLOB_CONTAINER_NAME" \
+            -backend-config="key=$TF_STATE_BLOB_FILE" \
+            -backend-config="sas_token=$TF_STATE_BLOB_SAS_TOKEN"
+        displayName: Terraform Init
+        env:
+          TF_STATE_BLOB_ACCOUNT_NAME:   $(kv-tf-state-blob-account)
+          TF_STATE_BLOB_CONTAINER_NAME: $(kv-tf-state-blob-container)
+          TF_STATE_BLOB_FILE:           $(kv-tf-state-blob-file)
+          TF_STATE_BLOB_SAS_TOKEN:      $(kv-tf-state-sas-token)
+      # Step 3: Terraform validate
+      - bash: |
+          terraform validate
+        displayName: Terraform Validate
+      # Step 4: Terraform apply initial
+      - bash: terraform apply -auto-approve -target=module.initial_resources
+        displayName: Terraform Apply Initial
+        env:
+          ARM_SUBSCRIPTION_ID: $(kv-arm-subscription-id)
+          ARM_CLIENT_ID:       $(kv-arm-client-id)
+          ARM_CLIENT_SECRET:   $(kv-arm-client-secret)
+          ARM_TENANT_ID:       $(kv-arm-tenant-id)
+      # Step 5: Terraform apply final
+      - bash: terraform apply -auto-approve -target=module.final_resources
+        displayName: Terraform Apply Final
+        env:
+          ARM_SUBSCRIPTION_ID: $(kv-arm-subscription-id)
+          ARM_CLIENT_ID:       $(kv-arm-client-id)
+          ARM_CLIENT_SECRET:   $(kv-arm-client-secret)
+          ARM_TENANT_ID:       $(kv-arm-tenant-id)

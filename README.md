@@ -14,6 +14,7 @@
 
     If running pipeline on Windows, apply via below to properly set Docker host:
     ```sh
+    terraform plan -var="is_windows=true"
     terraform apply -var="is_windows=true"
     ```
 
